@@ -1,6 +1,5 @@
 import mongoose from "mongoose"
 
-
 const transactionSchema = new mongoose.Schema({
     fromAccount: {
         type: mongoose.Schema.Types.ObjectId,
@@ -40,4 +39,4 @@ const transactionSchema = new mongoose.Schema({
 const transactionModel = mongoose.model("transaction", transactionSchema)
 
 
-module.exports = transactionModel   
+export default transactionModel   
