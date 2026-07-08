@@ -4,6 +4,10 @@
 
 The Banking API Core is a backend application designed to manage banking operations such as user authentication, account management, and transaction processing. It is built using Node.js and Express.js, with MongoDB as the database. The API provides secure endpoints for user registration, login, account creation, and transaction handling.
 
+## API Documentation
+
+Interactive Swagger docs are served at **`/api-docs`** (e.g. `http://localhost:3000/api-docs`) once the server is running — every endpoint below can be tried directly from the browser. Click **Authorize**, paste an access token from `POST /auth/login`, and any protected endpoint becomes callable.
+
 ## API Endpoints
 ### Authentication Endpoints:
 - POST /register: Register a new user.

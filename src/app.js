@@ -2,6 +2,9 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+
+import { swaggerSpec } from './config/swagger.js';
 
 import authRouter from './routes/auth.routes.js';
 import profileRouter from './routes/profile.routes.js';
@@ -53,6 +56,24 @@ app.use('/api/profile', profileRouter);
 app.use('/api/account', accountRouter);
 app.use('/api/transaction', transactionRouter);
 app.use('/api/account-type', accountTypeRouter);
+
+// Interactive API docs. Left public (no auth gate) — this is a portfolio
+// demo project and the point is a reviewer being able to open the link
+// and try it. Overwrites (not merges with) the global helmet() CSP for
+// this path only, since swagger-ui-express's bundled UI needs inline
+// scripts/styles that the default CSP blocks.
+app.use(
+  '/api-docs',
+  (req, res, next) => {
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    );
+    next();
+  },
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { customSiteTitle: 'Banking API Docs' })
+);
 
 // 404 handler
 app.use((req, res) => {
