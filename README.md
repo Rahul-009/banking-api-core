@@ -9,13 +9,22 @@ The Banking API Core is a backend application designed to manage banking operati
 - POST /register: Register a new user.
 - POST /login: Log in an existing user.
 - POST /logout: Log out the current user.
+- POST /refresh: get new access token with refresh token rotation.
+- POST /verify-otp: For email verification.
+- POST /resend-otp: Resends OTP on user request.
+- POST /forgot-password: Sends reset password email.
+- POST /reset-password: Resets user password.
 
-## Account Endpoints:
+### Profile Endpoints:
+- GET /get-profile: Fetch all user info
+- PUT /update-profile: Set user info
+
+### Account Endpoints:
 - POST /: Create a new account (requires authentication).
 - GET /: Retrieve all accounts for the authenticated user.
 - GET /balance/:accountId: Get the balance of a specific account (requires authentication).
 
-## Transaction Endpoints:
+### Transaction Endpoints:
 POST /: Create a new transaction (requires authentication).
 POST /system/initial-funds: Create an initial funds transaction (requires system user authentication).
 

@@ -129,7 +129,7 @@ async function userLoginController(req, res) {
         const accessToken = jwt.sign(
             { userId: user._id },
             process.env.JWT_SECRET,
-            { expiresIn: "15m" }
+            { expiresIn: "1d" }
         );
 
         // Set refresh token in HTTP-only cookie

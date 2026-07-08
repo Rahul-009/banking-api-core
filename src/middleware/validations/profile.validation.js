@@ -1,30 +1,5 @@
 import { body, validationResult} from 'express-validator'
 
-export const validateRegistration = [
-    body('email')
-        .isEmail()
-        .withMessage('Please provide a valid email address')
-        .normalizeEmail(),
-    
-    body('password')
-        .isLength({ min: 8 })
-        .withMessage('Password must be at least 8 characters long')
-        .matches(/[A-Z]/)
-        .withMessage('Password must contain at least one uppercase letter')
-        .matches(/[a-z]/)
-        .withMessage('Password must contain at least one lowercase letter')
-        .matches(/[0-9]/)
-        .withMessage('Password must contain at least one number'),
-    
-    body('name')
-        .trim()
-        .notEmpty()
-        .withMessage('Name is required')
-        .isLength({ min: 2, max: 50 })
-        .withMessage('Name must be between 2 and 50 characters')
-];
-
-
 // Validation rules for profile update
 export const validateProfileUpdate = [
     // Name validations
@@ -83,8 +58,8 @@ export const validateProfileUpdate = [
     body('address.zipCode')
         .optional()
         .trim()
-        .matches(/^\d{5}(-\d{4})?$/)
-        .withMessage('Please enter a valid ZIP code (e.g., 12345 or 12345-6789)')
+        .matches(/^\d{4}$/)
+        .withMessage('Please enter a valid ZIP code (e.g.')
         .escape(),
 
     body('address.country')
@@ -181,22 +156,6 @@ export const validateProfileUpdate = [
     // File validation will be handled by multer
 ];
 
-// Validation result handler
-export const handleValidationErrors = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            message: 'Validation failed',
-            errors: errors.array().map(err => ({
-                field: err.path,
-                message: err.msg
-            }))
-        });
-    }
-    next();
-};
-
 // Sanitize update data (remove undefined fields)
 export const sanitizeUpdateData = (req, res, next) => {
     if (req.body) {
@@ -222,4 +181,3 @@ export const sanitizeUpdateData = (req, res, next) => {
     }
     next();
 };
-

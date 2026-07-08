@@ -10,7 +10,7 @@ import {
     resetPasswordLimiter
 } from '../middleware/rateLimit.middleware.js';
 
-import { validateRegistration } from '../middleware/validation.middleware.js';
+import { validateRegistration } from '../middleware/validations/auth.validation..js';
 
 const router = express.Router()
 

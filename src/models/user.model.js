@@ -59,7 +59,6 @@ const userSchema = new mongoose.Schema({
         zipCode: {
             type: String,
             trim: true,
-            match: [/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"]
         },
         country: {
             type: String,
@@ -72,14 +71,7 @@ const userSchema = new mongoose.Schema({
     // Demographic Information
     dateOfBirth: {
         type: Date,
-        validate: {
-            validator: function(value) {
-                if (!value) return true
-                const age = Math.floor((Date.now() - value.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-                return age >= 18
-            },
-            message: "You must be at least 18 years old"
-        }
+        default: null
     },
     gender: {
         type: String,
@@ -174,7 +166,16 @@ const userSchema = new mongoose.Schema({
         default: 0,
         min: 0,
         max: 100
-    }
+    },
+
+    // Role field for access control
+    role: {
+      type: String,
+      enum: ['user', 'manager', 'admin', 'superadmin'],
+      default: 'user',
+      required: true,
+      index: true, // For faster queries
+    },
     
 }, {
     timestamps: true

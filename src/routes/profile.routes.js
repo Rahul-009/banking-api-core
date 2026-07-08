@@ -9,20 +9,21 @@ import {
 
 import { 
     validateProfileUpdate, 
-    handleValidationErrors,
     sanitizeUpdateData 
-} from '../middleware/validation.middleware.js';
+} from '../middleware/validations/profile.validation.js';
+
+import { validateRequest } from "../middleware/validateRequest.middleware.js";
 
 const router = new express.Router()
 
-router.get('/get-profile', authMiddleware.authMiddleware, profileController.getProfile);
-router.put('/update-profile',
+router.get('/', authMiddleware.authMiddleware, profileController.getProfile);
+router.put('/',
     authMiddleware.authMiddleware,
     uploadProfilePicture,                    // Handle file upload first
     handleMulterError,                       // Handle multer errors
     sanitizeUpdateData,                      // Clean empty fields
     validateProfileUpdate,                   // Validate all fields
-    handleValidationErrors,                 // Return validation errors
+    validateRequest,                 // Return validation errors
     profileController.updateProfile                           // Update the profile
 );
 
