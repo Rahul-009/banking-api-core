@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
@@ -6,7 +6,7 @@ const dpsInstallmentSchema = new Schema(
   {
     dps: {
       type: Schema.Types.ObjectId,
-      ref: "DPS",
+      ref: 'DPS',
       required: true,
       index: true,
     },
@@ -34,28 +34,19 @@ const dpsInstallmentSchema = new Schema(
 
     transaction: {
       type: Schema.Types.ObjectId,
-      ref: "Transaction",
+      ref: 'Transaction',
       default: null,
     },
 
     paymentMethod: {
       type: String,
-      enum: [
-        "ACCOUNT",
-        "CASH",
-        "ONLINE",
-        "AUTO_DEBIT",
-      ],
+      enum: ['ACCOUNT', 'CASH', 'ONLINE', 'AUTO_DEBIT'],
     },
 
     status: {
       type: String,
-      enum: [
-        "PENDING",
-        "PAID",
-        "MISSED",
-      ],
-      default: "PENDING",
+      enum: ['PENDING', 'PAID', 'MISSED'],
+      default: 'PENDING',
       index: true,
     },
 
@@ -97,84 +88,61 @@ dpsInstallmentSchema.index({
         VIRTUALS
 -------------------------- */
 
-dpsInstallmentSchema.virtual("isPaid").get(function () {
-  return this.status === "PAID";
+dpsInstallmentSchema.virtual('isPaid').get(function () {
+  return this.status === 'PAID';
 });
 
-dpsInstallmentSchema.virtual("isOverdue").get(function () {
-  return (
-    this.status === "PENDING" &&
-    this.dueDate < new Date()
-  );
+dpsInstallmentSchema.virtual('isOverdue').get(function () {
+  return this.status === 'PENDING' && this.dueDate < new Date();
 });
 
 /* -------------------------
         PRE SAVE
 -------------------------- */
 
-dpsInstallmentSchema.pre("save", function (next) {
-  if (
-    this.status === "PAID" &&
-    !this.paidDate
-  ) {
+dpsInstallmentSchema.pre('save', function () {
+  if (this.status === 'PAID' && !this.paidDate) {
     this.paidDate = new Date();
   }
-
-  next();
 });
 
 /* -------------------------
     INSTANCE METHODS
 -------------------------- */
 
-dpsInstallmentSchema.methods.markPaid =
-function (transactionId) {
-
-  this.status = "PAID";
+dpsInstallmentSchema.methods.markPaid = function (transactionId) {
+  this.status = 'PAID';
 
   this.transaction = transactionId;
 
   this.paidDate = new Date();
 
   return this.save();
-
 };
 
-dpsInstallmentSchema.methods.markMissed =
-function () {
-
-  this.status = "MISSED";
+dpsInstallmentSchema.methods.markMissed = function () {
+  this.status = 'MISSED';
 
   return this.save();
-
 };
 
 /* -------------------------
     STATIC METHODS
 -------------------------- */
 
-dpsInstallmentSchema.statics.findPending =
-function () {
-
+dpsInstallmentSchema.statics.findPending = function () {
   return this.find({
-    status: "PENDING",
+    status: 'PENDING',
   });
-
 };
 
-dpsInstallmentSchema.statics.findOverdue =
-function () {
-
+dpsInstallmentSchema.statics.findOverdue = function () {
   return this.find({
-    status: "PENDING",
+    status: 'PENDING',
     dueDate: {
       $lt: new Date(),
     },
   });
-
 };
 
-module.exports = mongoose.model(
-  "DPSInstallment",
-  dpsInstallmentSchema
-);
+module.exports = mongoose.model('DPSInstallment', dpsInstallmentSchema);

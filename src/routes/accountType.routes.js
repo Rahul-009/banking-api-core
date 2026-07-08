@@ -1,18 +1,18 @@
 import express from 'express';
 
 // Controllers
-import accountTypeController from '../controllers/accountType.controller.js'
+import accountTypeController from '../controllers/accountType.controller.js';
 
 // middlewares
 import authMiddleware from '../middleware/auth.middleware.js';
-import validation from '../middleware/validations/accountType.validation.js'
-import { validateRequest } from '../middleware/validateRequest.middleware.js'
+import validation from '../middleware/validations/accountType.validation.js';
+import { validateRequest } from '../middleware/validateRequest.middleware.js';
 import { requireCompleteProfile } from '../middleware/profileCompletion.middleware.js';
 
 const router = express.Router();
 
 router.use(authMiddleware.authMiddleware);
-router.use(requireCompleteProfile)
+router.use(requireCompleteProfile);
 
 // ============================================================
 //  PUBLIC ROUTES (require authentication)
@@ -35,11 +35,7 @@ router.get(
  * @desc    Get all active account types
  * @access  Private
  */
-router.get(
-  '/active',
-  authMiddleware.authMiddleware,
-  accountTypeController.getActiveAccountTypes
-);
+router.get('/active', authMiddleware.authMiddleware, accountTypeController.getActiveAccountTypes);
 
 /**
  * @route   GET /api/account-type/code/:code
@@ -154,5 +150,4 @@ router.delete(
   accountTypeController.deleteAccountType
 );
 
-
-export default router
+export default router;

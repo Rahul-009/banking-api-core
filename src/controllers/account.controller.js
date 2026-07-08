@@ -1,12 +1,24 @@
 import Account from '../models/account.model.js';
-import mongoose from 'mongoose';
 import AppError from '../utils/appError.utils.js';
+
+const isPrivilegedRole = (role) => ['admin', 'manager'].includes(role);
 
 // Create a new account
 export const createAccount = async (req, res, next) => {
   try {
-    const accountData = req.body;
-    
+    // Self-service only: account always belongs to the requester, always
+    // starts unfunded and PENDING regardless of what the client sends.
+    const { accountType, accountNumber, currency, isPrimary, remarks } = req.body;
+    const accountData = {
+      accountType,
+      accountNumber,
+      currency,
+      isPrimary,
+      remarks,
+      user: req.user._id,
+      balance: 0,
+    };
+
     // Check if account number already exists
     const existingAccount = await Account.findByAccountNumber(accountData.accountNumber);
     if (existingAccount) {
@@ -19,7 +31,7 @@ export const createAccount = async (req, res, next) => {
         user: accountData.user,
         isPrimary: true,
       });
-      
+
       if (existingPrimary) {
         return next(new AppError('User already has a primary account', 400));
       }
@@ -39,7 +51,7 @@ export const createAccount = async (req, res, next) => {
     if (error.code === 11000) {
       return next(new AppError('Account number already exists', 409));
     }
-    
+
     next(new AppError(error.message, 500));
   }
 };
@@ -62,8 +74,15 @@ export const getAccounts = async (req, res, next) => {
     const filter = {};
     if (status) filter.status = status;
     if (accountType) filter.accountType = accountType;
-    if (user) filter.user = user;
     if (isPrimary !== undefined) filter.isPrimary = isPrimary;
+
+    // Non-privileged users can only ever list their own accounts —
+    // the `user` query param is ignored (not trusted) for them.
+    if (isPrivilegedRole(req.user.role)) {
+      if (user) filter.user = user;
+    } else {
+      filter.user = req.user._id;
+    }
 
     // Build sort object
     const sort = {};
@@ -102,11 +121,17 @@ export const getAccountById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const account = await Account.findById(id)
-      .populate(['user', 'accountType']);
+    const account = await Account.findById(id).populate(['user', 'accountType']);
 
     if (!account) {
       return next(new AppError('Account not found', 404));
+    }
+
+    if (
+      !isPrivilegedRole(req.user.role) &&
+      account.user._id.toString() !== req.user._id.toString()
+    ) {
+      return next(new AppError('Not authorized to access this account', 403));
     }
 
     res.status(200).json({
@@ -123,11 +148,20 @@ export const getAccountByNumber = async (req, res, next) => {
   try {
     const { accountNumber } = req.params;
 
-    const account = await Account.findByAccountNumber(accountNumber)
-      .populate(['user', 'accountType']);
+    const account = await Account.findByAccountNumber(accountNumber).populate([
+      'user',
+      'accountType',
+    ]);
 
     if (!account) {
       return next(new AppError('Account not found', 404));
+    }
+
+    if (
+      !isPrivilegedRole(req.user.role) &&
+      account.user._id.toString() !== req.user._id.toString()
+    ) {
+      return next(new AppError('Not authorized to access this account', 403));
     }
 
     res.status(200).json({
@@ -143,16 +177,28 @@ export const getAccountByNumber = async (req, res, next) => {
 export const updateAccount = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
-
-    // Prevent updating immutable fields
-    delete updateData.accountNumber;
-    delete updateData.openedAt;
-    delete updateData.user;
 
     const account = await Account.findById(id);
     if (!account) {
       return next(new AppError('Account not found', 404));
+    }
+
+    const privileged = isPrivilegedRole(req.user.role);
+
+    if (!privileged && account.user.toString() !== req.user._id.toString()) {
+      return next(new AppError('Not authorized to modify this account', 403));
+    }
+
+    // Field allowlist: self-service can only touch cosmetic fields.
+    // balance/status/accountType are ledger- or admin-controlled and are
+    // silently ignored here rather than trusted from the request body.
+    const allowedFields = privileged
+      ? ['accountType', 'balance', 'status', 'isPrimary', 'remarks']
+      : ['isPrimary', 'remarks'];
+
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) updateData[field] = req.body[field];
     }
 
     // If updating isPrimary to true, ensure no other primary account exists
@@ -162,7 +208,7 @@ export const updateAccount = async (req, res, next) => {
         isPrimary: true,
         _id: { $ne: id },
       });
-      
+
       if (existingPrimary) {
         return next(new AppError('User already has a primary account', 400));
       }
@@ -184,7 +230,7 @@ export const updateAccount = async (req, res, next) => {
     if (error.code === 11000) {
       return next(new AppError('Account number already exists', 409));
     }
-    
+
     next(new AppError(error.message, 500));
   }
 };
@@ -197,6 +243,10 @@ export const freezeAccount = async (req, res, next) => {
     const account = await Account.findById(id);
     if (!account) {
       return next(new AppError('Account not found', 404));
+    }
+
+    if (!isPrivilegedRole(req.user.role) && account.user.toString() !== req.user._id.toString()) {
+      return next(new AppError('Not authorized to modify this account', 403));
     }
 
     if (account.status === 'CLOSED') {
@@ -254,7 +304,12 @@ export const closeAccount = async (req, res, next) => {
     }
 
     if (account.balance > 0) {
-      return next(new AppError('Cannot close account with positive balance. Please withdraw all funds first.', 400));
+      return next(
+        new AppError(
+          'Cannot close account with positive balance. Please withdraw all funds first.',
+          400
+        )
+      );
     }
 
     await account.close();
@@ -275,11 +330,14 @@ export const getAccountBalance = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const account = await Account.findById(id)
-      .select('balance currency status accountNumber');
+    const account = await Account.findById(id).select('balance currency status accountNumber user');
 
     if (!account) {
       return next(new AppError('Account not found', 404));
+    }
+
+    if (!isPrivilegedRole(req.user.role) && account.user.toString() !== req.user._id.toString()) {
+      return next(new AppError('Not authorized to access this account', 403));
     }
 
     res.status(200).json({
@@ -296,17 +354,14 @@ export const getAccountBalance = async (req, res, next) => {
   }
 };
 
-
-
-
 export default {
-    createAccount,
-    getAccounts,
-    getAccountById,
-    getAccountByNumber,
-    updateAccount,
-    freezeAccount,
-    activateAccount,
-    closeAccount,
-    getAccountBalance
-}
+  createAccount,
+  getAccounts,
+  getAccountById,
+  getAccountByNumber,
+  updateAccount,
+  freezeAccount,
+  activateAccount,
+  closeAccount,
+  getAccountBalance,
+};

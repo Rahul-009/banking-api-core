@@ -9,7 +9,7 @@ export const validateRequest = (req, res, next) => {
 
   if (!errors.isEmpty()) {
     // Format errors for better readability
-    const formattedErrors = errors.array().map(error => ({
+    const formattedErrors = errors.array().map((error) => ({
       field: error.path,
       message: error.msg,
       value: error.value,
@@ -20,7 +20,7 @@ export const validateRequest = (req, res, next) => {
       message: 'Validation failed',
       errors: formattedErrors,
       // Include for debugging
-      invalidFields: formattedErrors.map(e => e.field),
+      invalidFields: formattedErrors.map((e) => e.field),
     });
   }
 

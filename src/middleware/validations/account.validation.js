@@ -7,13 +7,13 @@ export const createAccountValidation = [
     .withMessage('User ID is required')
     .isMongoId()
     .withMessage('Invalid user ID format'),
-  
+
   body('accountType')
     .notEmpty()
     .withMessage('Account type is required')
     .isMongoId()
     .withMessage('Invalid account type ID format'),
-  
+
   body('accountNumber')
     .notEmpty()
     .withMessage('Account number is required')
@@ -22,33 +22,16 @@ export const createAccountValidation = [
     .trim()
     .isLength({ min: 5, max: 20 })
     .withMessage('Account number must be between 5 and 20 characters'),
-  
-  body('balance')
-    .optional()
-    .isNumeric()
-    .withMessage('Balance must be a number')
-    .isFloat({ min: 0 })
-    .withMessage('Balance cannot be negative'),
-  
+
   body('currency')
     .optional()
     .isString()
     .withMessage('Currency must be a string')
     .isIn(['BDT'])
     .withMessage('Currency must be BDT'),
-  
-  body('status')
-    .optional()
-    .isString()
-    .withMessage('Status must be a string')
-    .isIn(['PENDING', 'ACTIVE', 'FROZEN', 'DORMANT', 'CLOSED'])
-    .withMessage('Invalid status value'),
-  
-  body('isPrimary')
-    .optional()
-    .isBoolean()
-    .withMessage('isPrimary must be a boolean'),
-  
+
+  body('isPrimary').optional().isBoolean().withMessage('isPrimary must be a boolean'),
+
   body('remarks')
     .optional()
     .isString()
@@ -60,34 +43,26 @@ export const createAccountValidation = [
 
 // Validation rules for updating an account
 export const updateAccountValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account ID format'),
-  
-  body('accountType')
-    .optional()
-    .isMongoId()
-    .withMessage('Invalid account type ID format'),
-  
+  param('id').isMongoId().withMessage('Invalid account ID format'),
+
+  body('accountType').optional().isMongoId().withMessage('Invalid account type ID format'),
+
   body('balance')
     .optional()
     .isNumeric()
     .withMessage('Balance must be a number')
     .isFloat({ min: 0 })
     .withMessage('Balance cannot be negative'),
-  
+
   body('status')
     .optional()
     .isString()
     .withMessage('Status must be a string')
     .isIn(['PENDING', 'ACTIVE', 'FROZEN', 'DORMANT', 'CLOSED'])
     .withMessage('Invalid status value'),
-  
-  body('isPrimary')
-    .optional()
-    .isBoolean()
-    .withMessage('isPrimary must be a boolean'),
-  
+
+  body('isPrimary').optional().isBoolean().withMessage('isPrimary must be a boolean'),
+
   body('remarks')
     .optional()
     .isString()
@@ -99,9 +74,7 @@ export const updateAccountValidation = [
 
 // Validation rules for account ID parameter
 export const accountIdValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account ID format'),
+  param('id').isMongoId().withMessage('Invalid account ID format'),
 ];
 
 // Validation rules for account number parameter
@@ -117,42 +90,32 @@ export const accountNumberValidation = [
 ];
 
 // Validation rules for balance query
-export const balanceValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account ID format'),
-];
+export const balanceValidation = [param('id').isMongoId().withMessage('Invalid account ID format')];
 
 // Validation rules for ledger and transactions with pagination
 export const ledgerTransactionsValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account ID format'),
-  
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer')
-    .toInt(),
-  
+  param('id').isMongoId().withMessage('Invalid account ID format'),
+
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer').toInt(),
+
   query('limit')
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('Limit must be between 1 and 100')
     .toInt(),
-  
+
   query('startDate')
     .optional()
     .isISO8601()
     .withMessage('Invalid date format. Use ISO 8601 (YYYY-MM-DD)')
     .toDate(),
-  
+
   query('endDate')
     .optional()
     .isISO8601()
     .withMessage('Invalid date format. Use ISO 8601 (YYYY-MM-DD)')
     .toDate(),
-  
+
   query('type')
     .optional()
     .isString()
@@ -163,48 +126,34 @@ export const ledgerTransactionsValidation = [
 
 // Validation rules for account listing with filters
 export const listAccountsValidation = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer')
-    .toInt(),
-  
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer').toInt(),
+
   query('limit')
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('Limit must be between 1 and 100')
     .toInt(),
-  
+
   query('status')
     .optional()
     .isString()
     .withMessage('Status must be a string')
     .isIn(['PENDING', 'ACTIVE', 'FROZEN', 'DORMANT', 'CLOSED'])
     .withMessage('Invalid status value'),
-  
-  query('accountType')
-    .optional()
-    .isMongoId()
-    .withMessage('Invalid account type ID format'),
-  
-  query('user')
-    .optional()
-    .isMongoId()
-    .withMessage('Invalid user ID format'),
-  
-  query('isPrimary')
-    .optional()
-    .isBoolean()
-    .withMessage('isPrimary must be a boolean')
-    .toBoolean(),
-  
+
+  query('accountType').optional().isMongoId().withMessage('Invalid account type ID format'),
+
+  query('user').optional().isMongoId().withMessage('Invalid user ID format'),
+
+  query('isPrimary').optional().isBoolean().withMessage('isPrimary must be a boolean').toBoolean(),
+
   query('sortBy')
     .optional()
     .isString()
     .withMessage('sortBy must be a string')
     .isIn(['createdAt', 'balance', 'lastTransactionAt', 'openedAt'])
     .withMessage('Invalid sort field'),
-  
+
   query('sortOrder')
     .optional()
     .isString()
@@ -215,10 +164,8 @@ export const listAccountsValidation = [
 
 // Validation rules for deposit/withdraw operations
 export const transactionValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account ID format'),
-  
+  param('id').isMongoId().withMessage('Invalid account ID format'),
+
   body('amount')
     .notEmpty()
     .withMessage('Amount is required')
@@ -226,7 +173,7 @@ export const transactionValidation = [
     .withMessage('Amount must be a number')
     .isFloat({ min: 0.01 })
     .withMessage('Amount must be greater than 0'),
-  
+
   body('description')
     .optional()
     .isString()
@@ -234,20 +181,14 @@ export const transactionValidation = [
     .isLength({ max: 500 })
     .withMessage('Description cannot exceed 500 characters')
     .trim(),
-  
-  body('reference')
-    .optional()
-    .isString()
-    .withMessage('Reference must be a string')
-    .trim(),
+
+  body('reference').optional().isString().withMessage('Reference must be a string').trim(),
 ];
 
 // Validation rules for freezing an account
 export const freezeAccountValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account ID format'),
-  
+  param('id').isMongoId().withMessage('Invalid account ID format'),
+
   body('reason')
     .optional()
     .isString()

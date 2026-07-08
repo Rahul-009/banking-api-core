@@ -1,5 +1,4 @@
-
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
@@ -7,14 +6,14 @@ const accountSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
 
     accountType: {
       type: Schema.Types.ObjectId,
-      ref: "AccountType",
+      ref: 'AccountType',
       required: true,
       index: true,
     },
@@ -35,20 +34,14 @@ const accountSchema = new Schema(
 
     currency: {
       type: String,
-      default: "BDT",
-      enum: ["BDT"],
+      default: 'BDT',
+      enum: ['BDT'],
     },
 
     status: {
       type: String,
-      enum: [
-        "PENDING",
-        "ACTIVE",
-        "FROZEN",
-        "DORMANT",
-        "CLOSED",
-      ],
-      default: "PENDING",
+      enum: ['PENDING', 'ACTIVE', 'FROZEN', 'DORMANT', 'CLOSED'],
+      default: 'PENDING',
       index: true,
     },
 
@@ -82,15 +75,9 @@ const accountSchema = new Schema(
   }
 );
 
-
-
-
-
 /* ---------------------------------------
                 INDEXES
 ---------------------------------------- */
-
-
 
 // admin reports
 accountSchema.index({
@@ -117,49 +104,34 @@ accountSchema.index(
   }
 );
 
-
-
-
-
 /* ---------------------------------------
                 VIRTUALS
 ---------------------------------------- */
 
-accountSchema.virtual("isClosed").get(function () {
-  return this.status === "CLOSED";
+accountSchema.virtual('isClosed').get(function () {
+  return this.status === 'CLOSED';
 });
 
-accountSchema.virtual("isActive").get(function () {
-  return this.status === "ACTIVE";
+accountSchema.virtual('isActive').get(function () {
+  return this.status === 'ACTIVE';
 });
-
-
-
-
 
 /* ---------------------------------------
                 PRE SAVE
 ---------------------------------------- */
 
-accountSchema.pre("save", function (next) {
-  if (this.status === "CLOSED" && !this.closedAt) {
+accountSchema.pre('save', function () {
+  if (this.status === 'CLOSED' && !this.closedAt) {
     this.closedAt = new Date();
   }
-
-  next();
 });
-
-
-
-
 
 /* ---------------------------------------
             INSTANCE METHODS
 ---------------------------------------- */
 
 accountSchema.methods.deposit = function (amount) {
-  if (amount <= 0)
-    throw new Error("Invalid amount.");
+  if (amount <= 0) throw new Error('Invalid amount.');
 
   this.balance += amount;
 
@@ -169,11 +141,9 @@ accountSchema.methods.deposit = function (amount) {
 };
 
 accountSchema.methods.withdraw = function (amount) {
-  if (amount <= 0)
-    throw new Error("Invalid amount.");
+  if (amount <= 0) throw new Error('Invalid amount.');
 
-  if (this.balance < amount)
-    throw new Error("Insufficient balance.");
+  if (this.balance < amount) throw new Error('Insufficient balance.');
 
   this.balance -= amount;
 
@@ -183,51 +153,39 @@ accountSchema.methods.withdraw = function (amount) {
 };
 
 accountSchema.methods.freeze = function () {
-  this.status = "FROZEN";
+  this.status = 'FROZEN';
   return this.save();
 };
 
 accountSchema.methods.activate = function () {
-  this.status = "ACTIVE";
+  this.status = 'ACTIVE';
   return this.save();
 };
 
 accountSchema.methods.close = function () {
-  this.status = "CLOSED";
+  this.status = 'CLOSED';
   return this.save();
 };
-
-
-
-
 
 /* ---------------------------------------
             STATIC METHODS
 ---------------------------------------- */
 
-accountSchema.statics.findByAccountNumber = function (
-  accountNumber
-) {
+accountSchema.statics.findByAccountNumber = function (accountNumber) {
   return this.findOne({ accountNumber });
 };
 
 accountSchema.statics.findActive = function () {
   return this.find({
-    status: "ACTIVE",
+    status: 'ACTIVE',
   });
 };
 
-accountSchema.statics.findByCustomer = function (
-  userId
-) {
+accountSchema.statics.findByCustomer = function (userId) {
   return this.find({
     user: userId,
   });
 };
-
-
-
-
 
 /* ---------------------------------------
             QUERY HELPERS
@@ -235,7 +193,7 @@ accountSchema.statics.findByCustomer = function (
 
 accountSchema.query.active = function () {
   return this.where({
-    status: "ACTIVE",
+    status: 'ACTIVE',
   });
 };
 
@@ -251,11 +209,4 @@ accountSchema.query.byType = function (typeId) {
   });
 };
 
-
-
-
-
-export default mongoose.model(
-  "Account",
-  accountSchema
-);
+export default mongoose.model('Account', accountSchema);

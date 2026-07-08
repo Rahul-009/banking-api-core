@@ -1,36 +1,57 @@
-import express from "express"
-import cookieParser from "cookie-parser"
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import cors from 'cors';
 
-import authRouter from "./routes/auth.routes.js"
-import profileRouter from "./routes/profile.routes.js"
-import accountRouter from "./routes/account.routes.js"
-import transactionRouter from "./routes/transaction.routes.js"
-import accountTypeRouter from './routes/accountType.routes.js'
+import authRouter from './routes/auth.routes.js';
+import profileRouter from './routes/profile.routes.js';
+import accountRouter from './routes/account.routes.js';
+import transactionRouter from './routes/transaction.routes.js';
+import accountTypeRouter from './routes/accountType.routes.js';
 
-import { globalLimiter } from "./middleware/rateLimit.middleware.js"
-import AppError from "./utils/appError.utils.js"
+import { globalLimiter } from './middleware/rateLimit.middleware.js';
+import AppError from './utils/appError.utils.js';
 
-const app = express()
+const app = express();
 
-app.use(globalLimiter)
-app.use(express.json())
-app.use(cookieParser())
+// Comma-separated list, e.g. CORS_ORIGINS=http://localhost:5173,https://myapp.com
+// Falls back to FRONTEND_URL (already used for password reset links) for
+// the common single-origin case.
+const corsOrigins = (
+  process.env.CORS_ORIGINS ||
+  process.env.FRONTEND_URL ||
+  'http://localhost:3000'
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-app.get("/", (req, res) => {
-    res.send("Banking API is up and running")
-})
+app.use(helmet());
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: true,
+  })
+);
+app.use(globalLimiter);
+app.use(express.json());
+app.use(cookieParser());
 
-app.get("/health", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-        timestamp: new Date().toISOString()
-    });
+app.get('/', (req, res) => {
+  res.send('Banking API is up and running');
 });
 
-app.use('/api/auth', authRouter)
-app.use('/api/profile', profileRouter)
-app.use('/api/account', accountRouter)
-app.use('/api/transaction', transactionRouter)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use('/api/auth', authRouter);
+app.use('/api/profile', profileRouter);
+app.use('/api/account', accountRouter);
+app.use('/api/transaction', transactionRouter);
 app.use('/api/account-type', accountTypeRouter);
 
 // 404 handler
@@ -41,16 +62,24 @@ app.use((req, res) => {
   });
 });
 
-// Global Error Handler (one place for ALL errors)
+// Global Error Handler (one place for ALL errors). Express requires 4
+// params to recognize this as error-handling middleware, even though
+// `next` itself is unused here.
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error('Error:', err);
 
   // Handle specific error types
   if (err instanceof AppError) {
+    // 4xx messages are intentionally descriptive ("Account not found") and
+    // safe to show clients. 5xx messages often wrap a raw driver/internal
+    // error (see e.g. account.controller.js's next(new AppError(error.message, 500)))
+    // and should be generic outside development.
+    const exposeMessage = err.statusCode < 500 || process.env.NODE_ENV === 'development';
     return res.status(err.statusCode).json({
       success: false,
-      message: err.message,
-      errors: err.errors
+      message: exposeMessage ? err.message : 'Internal server error',
+      errors: err.errors,
     });
   }
 
@@ -58,7 +87,7 @@ app.use((err, req, res, next) => {
   if (err.name === 'CastError') {
     return res.status(400).json({
       success: false,
-      message: 'Invalid ID format'
+      message: 'Invalid ID format',
     });
   }
 
@@ -66,7 +95,7 @@ app.use((err, req, res, next) => {
   if (err.code === 11000) {
     return res.status(409).json({
       success: false,
-      message: 'Duplicate entry'
+      message: 'Duplicate entry',
     });
   }
 
@@ -74,8 +103,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
 
-export default app
+export default app;

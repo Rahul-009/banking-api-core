@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
@@ -6,14 +6,14 @@ const dpsSchema = new Schema(
   {
     account: {
       type: Schema.Types.ObjectId,
-      ref: "Account",
+      ref: 'Account',
       required: true,
       index: true,
     },
 
     product: {
       type: Schema.Types.ObjectId,
-      ref: "DepositProduct",
+      ref: 'DepositProduct',
       required: true,
       index: true,
     },
@@ -88,14 +88,8 @@ const dpsSchema = new Schema(
 
     status: {
       type: String,
-      enum: [
-        "ACTIVE",
-        "COMPLETED",
-        "MATURED",
-        "DEFAULTED",
-        "CLOSED",
-      ],
-      default: "ACTIVE",
+      enum: ['ACTIVE', 'COMPLETED', 'MATURED', 'DEFAULTED', 'CLOSED'],
+      default: 'ACTIVE',
       index: true,
     },
 
@@ -122,14 +116,12 @@ dpsSchema.index({ maturityDate: 1 });
         VIRTUALS
 --------------------------- */
 
-dpsSchema.virtual("remainingInstallments").get(function () {
+dpsSchema.virtual('remainingInstallments').get(function () {
   return this.totalInstallments - this.paidInstallments;
 });
 
-dpsSchema.virtual("completionPercentage").get(function () {
-  return (
-    (this.paidInstallments / this.totalInstallments) * 100
-  ).toFixed(2);
+dpsSchema.virtual('completionPercentage').get(function () {
+  return ((this.paidInstallments / this.totalInstallments) * 100).toFixed(2);
 });
 
 /* --------------------------
@@ -137,21 +129,21 @@ dpsSchema.virtual("completionPercentage").get(function () {
 --------------------------- */
 
 dpsSchema.methods.canReceiveInstallment = function () {
-  return this.status === "ACTIVE";
+  return this.status === 'ACTIVE';
 };
 
 dpsSchema.methods.markCompleted = function () {
-  this.status = "COMPLETED";
+  this.status = 'COMPLETED';
   return this.save();
 };
 
 dpsSchema.methods.markMatured = function () {
-  this.status = "MATURED";
+  this.status = 'MATURED';
   return this.save();
 };
 
 dpsSchema.methods.markDefaulted = function () {
-  this.status = "DEFAULTED";
+  this.status = 'DEFAULTED';
   return this.save();
 };
 
@@ -160,7 +152,7 @@ dpsSchema.methods.markDefaulted = function () {
 --------------------------- */
 
 dpsSchema.statics.findActive = function () {
-  return this.find({ status: "ACTIVE" });
+  return this.find({ status: 'ACTIVE' });
 };
 
 dpsSchema.statics.findDueToday = function () {
@@ -175,8 +167,8 @@ dpsSchema.statics.findDueToday = function () {
       $gte: start,
       $lt: end,
     },
-    status: "ACTIVE",
+    status: 'ACTIVE',
   });
 };
 
-module.exports = mongoose.model("DPS", dpsSchema);
+module.exports = mongoose.model('DPS', dpsSchema);

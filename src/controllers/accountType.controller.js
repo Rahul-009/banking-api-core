@@ -1,21 +1,14 @@
 import mongoose from 'mongoose';
 import AppError from '../utils/appError.utils.js';
 
-import User from '../models/user.model.js'
-import Account from '../models/account.model.js'
-import AccountType from '../models/accountType.model.js'
-
+import User from '../models/user.model.js';
+import Account from '../models/account.model.js';
+import AccountType from '../models/accountType.model.js';
 
 // GET /api/account-types
 const getAllAccountTypes = async (req, res, next) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      isActive, 
-      category,
-      search 
-    } = req.query;
+    const { page = 1, limit = 10, isActive, category, search } = req.query;
 
     // Build filter
     const filter = {};
@@ -24,18 +17,15 @@ const getAllAccountTypes = async (req, res, next) => {
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { code: { $regex: search, $options: 'i' } }
+        { code: { $regex: search, $options: 'i' } },
       ];
     }
 
     const skip = (page - 1) * limit;
 
     const [accountTypes, total] = await Promise.all([
-      AccountType.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit)),
-      AccountType.countDocuments(filter)
+      AccountType.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      AccountType.countDocuments(filter),
     ]);
 
     res.status(200).json({
@@ -45,11 +35,11 @@ const getAllAccountTypes = async (req, res, next) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
@@ -59,14 +49,14 @@ const getAccountTypeById = async (req, res, next) => {
     const { id } = req.params;
 
     const accountType = await AccountType.findById(id);
-    
+
     if (!accountType) {
       return next(new AppError('Account type not found', 404));
     }
 
     res.status(200).json({
       success: true,
-      data: accountType
+      data: accountType,
     });
   } catch (error) {
     next(error);
@@ -79,14 +69,14 @@ const getAccountTypeByCode = async (req, res, next) => {
     const { code } = req.params;
 
     const accountType = await AccountType.findByCode(code);
-    
+
     if (!accountType) {
       return next(new AppError('Account type not found', 404));
     }
 
     res.status(200).json({
       success: true,
-      data: accountType
+      data: accountType,
     });
   } catch (error) {
     next(error);
@@ -107,10 +97,12 @@ const deleteAccountType = async (req, res, next) => {
     // Check if any accounts are using this type
     const accountCount = await Account.countDocuments({ accountTypeId: id });
     if (accountCount > 0) {
-      return next(new AppError(
-        `Cannot delete. ${accountCount} accounts are using this account type. Archive or deactivate instead.`,
-        400
-      ));
+      return next(
+        new AppError(
+          `Cannot delete. ${accountCount} accounts are using this account type. Archive or deactivate instead.`,
+          400
+        )
+      );
     }
 
     // Hard delete (or you could implement soft delete)
@@ -119,7 +111,7 @@ const deleteAccountType = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Account type deleted successfully',
-      data: null
+      data: null,
     });
   } catch (error) {
     next(error);
@@ -129,7 +121,6 @@ const deleteAccountType = async (req, res, next) => {
 // POST /api/account-types
 const createAccountType = async (req, res, next) => {
   try {
-
     const {
       code,
       name,
@@ -145,7 +136,7 @@ const createAccountType = async (req, res, next) => {
       allowedGender = 'ANY',
       requiresStudentVerification = false,
       isActive = true,
-      features = {}
+      features = {},
     } = req.body;
 
     // Check if code already exists
@@ -163,7 +154,9 @@ const createAccountType = async (req, res, next) => {
     // Validate enum values
     const validCodes = ['SAVINGS', 'CURRENT', 'STUDENT', 'WOMEN'];
     if (!validCodes.includes(code.toUpperCase())) {
-      return next(new AppError('Invalid account type code. Must be SAVINGS, CURRENT, STUDENT, or WOMEN', 400));
+      return next(
+        new AppError('Invalid account type code. Must be SAVINGS, CURRENT, STUDENT, or WOMEN', 400)
+      );
     }
 
     // Create new account type with default features
@@ -187,8 +180,8 @@ const createAccountType = async (req, res, next) => {
         chequeBook: features.chequeBook !== undefined ? features.chequeBook : false,
         internetBanking: features.internetBanking !== undefined ? features.internetBanking : true,
         mobileBanking: features.mobileBanking !== undefined ? features.mobileBanking : true,
-        smsAlert: features.smsAlert !== undefined ? features.smsAlert : true
-      }
+        smsAlert: features.smsAlert !== undefined ? features.smsAlert : true,
+      },
     };
 
     const accountType = await AccountType.create(accountTypeData);
@@ -196,7 +189,7 @@ const createAccountType = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Account type created successfully',
-      data: accountType
+      data: accountType,
     });
   } catch (error) {
     next(error);
@@ -206,7 +199,6 @@ const createAccountType = async (req, res, next) => {
 // PATCH /api/account-types/:id
 const updateAccountType = async (req, res, next) => {
   try {
-    
     // find the accountType
     const { id } = req.params;
     const accountType = await AccountType.findById(id);
@@ -214,7 +206,7 @@ const updateAccountType = async (req, res, next) => {
     if (!accountType) {
       return res.status(404).json({
         success: false,
-        message: "Account type not found.",
+        message: 'Account type not found.',
       });
     }
 
@@ -222,8 +214,14 @@ const updateAccountType = async (req, res, next) => {
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Request body cannot be empty. Please provide at least one field to update.",
-        allowedFields: ['interestRate', 'minimumBalance', 'monthlyMaintenanceFee', 'features', 'isActive']
+        message: 'Request body cannot be empty. Please provide at least one field to update.',
+        allowedFields: [
+          'interestRate',
+          'minimumBalance',
+          'monthlyMaintenanceFee',
+          'features',
+          'isActive',
+        ],
       });
     }
 
@@ -233,43 +231,49 @@ const updateAccountType = async (req, res, next) => {
       'minimumBalance',
       'monthlyMaintenanceFee',
       'features',
-      'isActive'
+      'isActive',
     ];
-    
+
     const requestedUpdates = Object.keys(req.body);
-    const invalidUpdates = requestedUpdates.filter(field => !allowedUpdates.includes(field));
-    
+    const invalidUpdates = requestedUpdates.filter((field) => !allowedUpdates.includes(field));
+
     if (invalidUpdates.length > 0) {
       return res.status(400).json({
         success: false,
-        message: `Only these fields can be updated: ${allowedUpdates.join(', ')}. Invalid fields: ${invalidUpdates.join(', ')}`
+        message: `Only these fields can be updated: ${allowedUpdates.join(', ')}. Invalid fields: ${invalidUpdates.join(', ')}`,
       });
     }
 
+    if (req.body.features) {
+      const allowedFeatureKeys = [
+        'atmCard',
+        'chequeBook',
+        'internetBanking',
+        'mobileBanking',
+        'smsAlert',
+      ];
+      const requestedFeatureKeys = Object.keys(req.body.features);
+      const invalidFeatureKeys = requestedFeatureKeys.filter(
+        (key) => !allowedFeatureKeys.includes(key)
+      );
 
-    if(req.body.features){
-        const allowedFeatureKeys = ['atmCard', 'chequeBook', 'internetBanking', 'mobileBanking', 'smsAlert'];
-        const requestedFeatureKeys = Object.keys(req.body.features);
-        const invalidFeatureKeys = requestedFeatureKeys.filter(key => !allowedFeatureKeys.includes(key));
-
-        if (invalidFeatureKeys.length > 0) {
-            return res.status(400).json({
-            success: false,
-            message: `Invalid feature keys: ${invalidFeatureKeys.join(', ')}. Allowed: ${allowedFeatureKeys.join(', ')}`
-            });
-        }
+      if (invalidFeatureKeys.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid feature keys: ${invalidFeatureKeys.join(', ')}. Allowed: ${allowedFeatureKeys.join(', ')}`,
+        });
+      }
     }
-    
-    Object.assign(accountType, req.body);
-    console.log(accountType)
-    delete accountType.updatedAt
 
+    Object.assign(accountType, req.body);
+    console.log(accountType);
+    delete accountType.updatedAt;
 
     await accountType.save();
 
     return res.status(200).json({
       success: true,
-      message: "Account type updated successfully.",
+      message: 'Account type updated successfully.',
       data: accountType,
     });
   } catch (error) {
@@ -292,22 +296,22 @@ const getAccountTypeUsage = async (req, res, next) => {
     }
 
     const totalAccounts = await Account.countDocuments({ accountTypeId: id });
-    const activeAccounts = await Account.countDocuments({ 
+    const activeAccounts = await Account.countDocuments({
       accountTypeId: id,
-      status: 'ACTIVE'
+      status: 'ACTIVE',
     });
-    const frozenAccounts = await Account.countDocuments({ 
+    const frozenAccounts = await Account.countDocuments({
       accountTypeId: id,
-      status: 'FROZEN'
+      status: 'FROZEN',
     });
-    const closedAccounts = await Account.countDocuments({ 
+    const closedAccounts = await Account.countDocuments({
       accountTypeId: id,
-      status: 'CLOSED'
+      status: 'CLOSED',
     });
 
     const totalBalance = await Account.aggregate([
       { $match: { accountTypeId: id, status: 'ACTIVE' } },
-      { $group: { _id: null, total: { $sum: '$balance' } } }
+      { $group: { _id: null, total: { $sum: '$balance' } } },
     ]);
 
     res.status(200).json({
@@ -317,7 +321,7 @@ const getAccountTypeUsage = async (req, res, next) => {
           id: accountType._id,
           code: accountType.code,
           name: accountType.name,
-          isActive: accountType.isActive
+          isActive: accountType.isActive,
         },
         usage: {
           totalAccounts,
@@ -325,10 +329,10 @@ const getAccountTypeUsage = async (req, res, next) => {
           frozenAccounts,
           closedAccounts,
           totalBalance: totalBalance.length > 0 ? totalBalance[0].total : 0,
-          usagePercentage: totalAccounts > 0 ? 
-            ((activeAccounts / totalAccounts) * 100).toFixed(2) : 0
-        }
-      }
+          usagePercentage:
+            totalAccounts > 0 ? ((activeAccounts / totalAccounts) * 100).toFixed(2) : 0,
+        },
+      },
     });
   } catch (error) {
     next(error);
@@ -343,7 +347,7 @@ const getActiveAccountTypes = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: accountTypes,
-      count: accountTypes.length
+      count: accountTypes.length,
     });
   } catch (error) {
     next(error);
@@ -354,16 +358,16 @@ const getActiveAccountTypes = async (req, res, next) => {
 const checkEligibility = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    
+
     // Get user from database
     const user = await User.findById(userId);
-    
+
     if (!user) {
       return next(new AppError('User not found', 404));
     }
 
     const accountTypes = await AccountType.find({ isActive: true });
-    
+
     const eligibleTypes = [];
     const ineligibleTypes = [];
 
@@ -379,8 +383,8 @@ const checkEligibility = async (req, res, next) => {
           minimumAge: type.minimumAge,
           maximumAge: type.maximumAge,
           allowedGender: type.allowedGender,
-          requiresStudentVerification: type.requiresStudentVerification
-        }
+          requiresStudentVerification: type.requiresStudentVerification,
+        },
       };
 
       if (eligible) {
@@ -388,7 +392,7 @@ const checkEligibility = async (req, res, next) => {
           ...result,
           minimumBalance: type.minimumBalance,
           monthlyMaintenanceFee: type.monthlyMaintenanceFee,
-          interestRate: type.interestRate
+          interestRate: type.interestRate,
         });
       } else {
         ineligibleTypes.push(result);
@@ -400,13 +404,15 @@ const checkEligibility = async (req, res, next) => {
       data: {
         user: {
           id: user._id,
-          age: Math.floor((Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000)),
+          age: Math.floor(
+            (Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+          ),
           gender: user.gender,
-          occupation: user.occupation
+          occupation: user.occupation,
         },
         eligible: eligibleTypes,
-        ineligible: ineligibleTypes
-      }
+        ineligible: ineligibleTypes,
+      },
     });
   } catch (error) {
     next(error);
@@ -437,8 +443,8 @@ const calculateInterest = async (req, res, next) => {
         balance: balance,
         interestRate: accountType.interestRate,
         interestAmount: interest,
-        totalBalance: balance + interest
-      }
+        totalBalance: balance + interest,
+      },
     });
   } catch (error) {
     next(error);
@@ -446,14 +452,14 @@ const calculateInterest = async (req, res, next) => {
 };
 
 export default {
-    getAllAccountTypes,
-    getAccountTypeById,
-    getAccountTypeByCode,
-    deleteAccountType,
-    createAccountType,
-    updateAccountType,
-    getAccountTypeUsage,
-    getActiveAccountTypes,
-    checkEligibility,
-    calculateInterest,
-}
+  getAllAccountTypes,
+  getAccountTypeById,
+  getAccountTypeByCode,
+  deleteAccountType,
+  createAccountType,
+  updateAccountType,
+  getAccountTypeUsage,
+  getActiveAccountTypes,
+  checkEligibility,
+  calculateInterest,
+};

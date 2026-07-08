@@ -1,4 +1,4 @@
-import { body, param, query } from 'express-validator'
+import { body, param, query } from 'express-validator';
 
 /**
  * Validation rules for creating an account type
@@ -95,26 +95,14 @@ const validateCreateAccountType = [
     .withMessage('requiresStudentVerification must be a boolean'),
 
   // Active status validation
-  body('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive must be a boolean'),
+  body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
 
   // Features validation
-  body('features')
-    .optional()
-    .isObject()
-    .withMessage('Features must be an object'),
+  body('features').optional().isObject().withMessage('Features must be an object'),
 
-  body('features.atmCard')
-    .optional()
-    .isBoolean()
-    .withMessage('atmCard must be a boolean'),
+  body('features.atmCard').optional().isBoolean().withMessage('atmCard must be a boolean'),
 
-  body('features.chequeBook')
-    .optional()
-    .isBoolean()
-    .withMessage('chequeBook must be a boolean'),
+  body('features.chequeBook').optional().isBoolean().withMessage('chequeBook must be a boolean'),
 
   body('features.internetBanking')
     .optional()
@@ -126,10 +114,7 @@ const validateCreateAccountType = [
     .isBoolean()
     .withMessage('mobileBanking must be a boolean'),
 
-  body('features.smsAlert')
-    .optional()
-    .isBoolean()
-    .withMessage('smsAlert must be a boolean'),
+  body('features.smsAlert').optional().isBoolean().withMessage('smsAlert must be a boolean'),
 ];
 
 /**
@@ -137,9 +122,7 @@ const validateCreateAccountType = [
  */
 const validateUpdateAccountType = [
   // ID validation
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account type ID format'),
+  param('id').isMongoId().withMessage('Invalid account type ID format'),
 
   // Only allow specific fields to be updated
   body('interestRate')
@@ -157,26 +140,14 @@ const validateUpdateAccountType = [
     .isFloat({ min: 0 })
     .withMessage('Monthly maintenance fee must be a positive number'),
 
-  body('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive must be a boolean'),
+  body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
 
   // Features validation
-  body('features')
-    .optional()
-    .isObject()
-    .withMessage('Features must be an object'),
+  body('features').optional().isObject().withMessage('Features must be an object'),
 
-  body('features.atmCard')
-    .optional()
-    .isBoolean()
-    .withMessage('atmCard must be a boolean'),
+  body('features.atmCard').optional().isBoolean().withMessage('atmCard must be a boolean'),
 
-  body('features.chequeBook')
-    .optional()
-    .isBoolean()
-    .withMessage('chequeBook must be a boolean'),
+  body('features.chequeBook').optional().isBoolean().withMessage('chequeBook must be a boolean'),
 
   body('features.internetBanking')
     .optional()
@@ -188,26 +159,14 @@ const validateUpdateAccountType = [
     .isBoolean()
     .withMessage('mobileBanking must be a boolean'),
 
-  body('features.smsAlert')
-    .optional()
-    .isBoolean()
-    .withMessage('smsAlert must be a boolean'),
+  body('features.smsAlert').optional().isBoolean().withMessage('smsAlert must be a boolean'),
 
   // ⚠️ Block disallowed fields
-  body('code')
-    .not()
-    .exists()
-    .withMessage('Code cannot be updated'),
+  body('code').not().exists().withMessage('Code cannot be updated'),
 
-  body('name')
-    .not()
-    .exists()
-    .withMessage('Name cannot be updated'),
+  body('name').not().exists().withMessage('Name cannot be updated'),
 
-  body('description')
-    .not()
-    .exists()
-    .withMessage('Description cannot be updated'),
+  body('description').not().exists().withMessage('Description cannot be updated'),
 
   body('minimumOpeningDeposit')
     .not()
@@ -224,20 +183,11 @@ const validateUpdateAccountType = [
     .exists()
     .withMessage('Maximum daily transactions cannot be updated'),
 
-  body('minimumAge')
-    .not()
-    .exists()
-    .withMessage('Minimum age cannot be updated'),
+  body('minimumAge').not().exists().withMessage('Minimum age cannot be updated'),
 
-  body('maximumAge')
-    .not()
-    .exists()
-    .withMessage('Maximum age cannot be updated'),
+  body('maximumAge').not().exists().withMessage('Maximum age cannot be updated'),
 
-  body('allowedGender')
-    .not()
-    .exists()
-    .withMessage('Allowed gender cannot be updated'),
+  body('allowedGender').not().exists().withMessage('Allowed gender cannot be updated'),
 
   body('requiresStudentVerification')
     .not()
@@ -249,9 +199,7 @@ const validateUpdateAccountType = [
  * Validation rules for getting account type by ID
  */
 const validateGetAccountType = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account type ID format'),
+  param('id').isMongoId().withMessage('Invalid account type ID format'),
 ];
 /**
  * Validation rules for getting account type by code
@@ -270,19 +218,15 @@ const validateGetAccountTypeByCode = [
  * Validation rules for deleting account type
  */
 const validateDeleteAccountType = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account type ID format'),
+  param('id').isMongoId().withMessage('Invalid account type ID format'),
 ];
 
 /**
  * Validation rules for calculating interest
  */
 const validateCalculateInterest = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid account type ID format'),
-  
+  param('id').isMongoId().withMessage('Invalid account type ID format'),
+
   body('balance')
     .notEmpty()
     .withMessage('Balance is required')
@@ -294,20 +238,14 @@ const validateCalculateInterest = [
  * Validation rules for checking eligibility
  */
 const validateCheckEligibility = [
-  param('userId')
-    .isMongoId()
-    .withMessage('Invalid user ID format'),
+  param('userId').isMongoId().withMessage('Invalid user ID format'),
 ];
 
 /**
  * Validation rules for getting account types with pagination
  */
 const validateGetAccountTypes = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer')
-    .toInt(),
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer').toInt(),
 
   query('limit')
     .optional()
@@ -315,11 +253,7 @@ const validateGetAccountTypes = [
     .withMessage('Limit must be between 1 and 100')
     .toInt(),
 
-  query('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive must be a boolean')
-    .toBoolean(),
+  query('isActive').optional().isBoolean().withMessage('isActive must be a boolean').toBoolean(),
 
   query('search')
     .optional()
@@ -337,4 +271,4 @@ export default {
   validateCalculateInterest,
   validateCheckEligibility,
   validateGetAccountTypes,
-}
+};

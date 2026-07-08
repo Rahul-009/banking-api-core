@@ -1,81 +1,85 @@
-import userModel from "../models/user.model.js"
-import jwt from "jsonwebtoken"
-import tokenBlackListModel from "../models/blackList.model.js"
-
-
+import userModel from '../models/user.model.js';
+import jwt from 'jsonwebtoken';
+import tokenBlackListModel from '../models/blackList.model.js';
 
 async function authMiddleware(req, res, next) {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[ 1 ]
+  if (!token) {
+    return res.status(401).json({
+      message: 'Unauthorized access, token is missing',
+    });
+  }
 
-    if (!token) {
-        return res.status(401).json({
-            message: "Unauthorized access, token is missing"
-        })
+  const isBlacklisted = await tokenBlackListModel.findOne({ token });
+
+  if (isBlacklisted) {
+    return res.status(401).json({
+      message: 'Unauthorized access, token is invalid',
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.type !== 'access') {
+      return res.status(401).json({
+        message: 'Unauthorized access, token is invalid',
+      });
     }
 
-    const isBlacklisted = await tokenBlackListModel.findOne({ token })
+    const user = await userModel.findById(decoded.userId);
 
-    if (isBlacklisted) {
-        return res.status(401).json({
-            message: "Unauthorized access, token is invalid"
-        })
-    }
+    req.user = user;
 
-    try {
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-        const user = await userModel.findById(decoded.userId)
-
-        req.user = user
-
-        return next()
-
-    } catch (err) {
-        return res.status(401).json({
-            message: "Unauthorized access, token is invalid"
-        })
-    }
+    return next();
+  } catch {
+    return res.status(401).json({
+      message: 'Unauthorized access, token is invalid',
+    });
+  }
 }
 async function authSystemUserMiddleware(req, res, next) {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[ 1 ]
+  if (!token) {
+    return res.status(401).json({
+      message: 'Unauthorized access, token is missing',
+    });
+  }
 
-    if (!token) {
-        return res.status(401).json({
-            message: "Unauthorized access, token is missing"
-        })
+  const isBlacklisted = await tokenBlackListModel.findOne({ token });
+
+  if (isBlacklisted) {
+    return res.status(401).json({
+      message: 'Unauthorized access, token is invalid',
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.type !== 'access') {
+      return res.status(401).json({
+        message: 'Unauthorized access, token is invalid',
+      });
     }
 
-    const isBlacklisted = await tokenBlackListModel.findOne({ token })
-
-    if (isBlacklisted) {
-        return res.status(401).json({
-            message: "Unauthorized access, token is invalid"
-        })
+    const user = await userModel.findById(decoded.userId).select('+systemUser');
+    if (!user.systemUser) {
+      return res.status(403).json({
+        message: 'Forbidden access, not a system user',
+      });
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    req.user = user;
 
-        const user = await userModel.findById(decoded.userId).select("+systemUser")
-        if (!user.systemUser) {
-            return res.status(403).json({
-                message: "Forbidden access, not a system user"
-            })
-        }
-
-        req.user = user
-
-        return next()
-    }
-    catch (err) {
-        return res.status(401).json({
-            message: "Unauthorized access, token is invalid"
-        })
-    }
-
+    return next();
+  } catch {
+    return res.status(401).json({
+      message: 'Unauthorized access, token is invalid',
+    });
+  }
 }
 
 /**
@@ -102,7 +106,7 @@ const restrictTo = (...roles) => {
 };
 
 export default {
-    authMiddleware,
-    authSystemUserMiddleware,
-    restrictTo,
-}
+  authMiddleware,
+  authSystemUserMiddleware,
+  restrictTo,
+};

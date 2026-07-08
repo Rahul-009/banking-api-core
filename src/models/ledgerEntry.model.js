@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
@@ -6,15 +6,14 @@ const ledgerEntrySchema = new Schema(
   {
     transaction: {
       type: Schema.Types.ObjectId,
-      ref: "Transaction",
+      ref: 'Transaction',
       required: true,
       immutable: true,
-      index: true,
     },
 
     account: {
       type: Schema.Types.ObjectId,
-      ref: "Account",
+      ref: 'Account',
       required: true,
       immutable: true,
       index: true,
@@ -22,7 +21,7 @@ const ledgerEntrySchema = new Schema(
 
     entryType: {
       type: String,
-      enum: ["DEBIT", "CREDIT"],
+      enum: ['DEBIT', 'CREDIT'],
       required: true,
       immutable: true,
     },
@@ -41,7 +40,7 @@ const ledgerEntrySchema = new Schema(
 
     currency: {
       type: String,
-      default: "BDT",
+      default: 'BDT',
       immutable: true,
     },
 
@@ -56,12 +55,11 @@ const ledgerEntrySchema = new Schema(
       type: Number,
       required: true,
       immutable: true,
-      index: true,
     },
 
     reversedBy: {
       type: Schema.Types.ObjectId,
-      ref: "Ledger",
+      ref: 'LedgerEntry',
       default: null,
       immutable: true,
     },
@@ -94,37 +92,26 @@ ledgerEntrySchema.index({
 ------------------------------ */
 
 function preventModification() {
-  throw new Error(
-    "Ledger entries are immutable and cannot be modified."
-  );
+  throw new Error('Ledger entries are immutable and cannot be modified.');
 }
 
-ledgerEntrySchema.pre("save", function (next) {
+ledgerEntrySchema.pre('save', function () {
   if (!this.isNew) {
-    return next(
-      new Error(
-        "Ledger entries are immutable."
-      )
-    );
+    throw new Error('Ledger entries are immutable.');
   }
-
-  next();
 });
 
 [
-  "updateOne",
-  "updateMany",
-  "findOneAndUpdate",
-  "replaceOne",
-  "findOneAndReplace",
-  "deleteOne",
-  "deleteMany",
-  "findOneAndDelete",
+  'updateOne',
+  'updateMany',
+  'findOneAndUpdate',
+  'replaceOne',
+  'findOneAndReplace',
+  'deleteOne',
+  'deleteMany',
+  'findOneAndDelete',
 ].forEach((hook) => {
   ledgerEntrySchema.pre(hook, preventModification);
 });
 
-export default mongoose.model(
-  "LedgerEntry",
-  ledgerEntrySchema
-);
+export default mongoose.model('LedgerEntry', ledgerEntrySchema);

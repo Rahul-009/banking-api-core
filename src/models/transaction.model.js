@@ -1,8 +1,9 @@
-import mongoose from "mongoose"
+import mongoose from 'mongoose';
 
-const { Schema }= mongoose;
+const { Schema } = mongoose;
 
-const transactionSchema = new Schema({
+const transactionSchema = new Schema(
+  {
     referenceNo: {
       type: String,
       required: true,
@@ -10,73 +11,53 @@ const transactionSchema = new Schema({
       immutable: true,
       index: true,
     },
-    status: {
-        type: String,
-        enum: {
-            values: [ "PENDING", "COMPLETED", "FAILED", "REVERSED" ],
-            message: "Status can be either PENDING, COMPLETED, FAILED or REVERSED",
-        },
-        default: "PENDING"
-    },
     type: {
       type: String,
       required: true,
       enum: [
-        "DEPOSIT",
-        "WITHDRAW",
-        "TRANSFER",
+        'DEPOSIT',
+        'WITHDRAW',
+        'TRANSFER',
 
-        "FDR_CREATE",
-        "FDR_MATURE",
-        "FDR_PREMATURE_CLOSE",
+        'FDR_CREATE',
+        'FDR_MATURE',
+        'FDR_PREMATURE_CLOSE',
 
-        "DPS_CREATE",
-        "DPS_INSTALLMENT",
-        "DPS_MATURE",
+        'DPS_CREATE',
+        'DPS_INSTALLMENT',
+        'DPS_MATURE',
 
-        "LOAN_DISBURSE",
-        "LOAN_PAYMENT",
+        'LOAN_DISBURSE',
+        'LOAN_PAYMENT',
 
-        "INTEREST_CREDIT",
-        "SERVICE_CHARGE",
+        'INTEREST_CREDIT',
+        'SERVICE_CHARGE',
 
-        "REVERSAL",
-        "ADJUSTMENT",
+        'REVERSAL',
+        'ADJUSTMENT',
       ],
       index: true,
     },
     amount: {
-        type: Schema.Types.Decimal128,
-        required: [ true, "Amount is required for creating a transaction" ],
-        min: [ 0, "Transaction amount cannot be negative" ]
+      type: Schema.Types.Decimal128,
+      required: [true, 'Amount is required for creating a transaction'],
+      min: [0, 'Transaction amount cannot be negative'],
     },
     currency: {
       type: String,
-      default: "BDT",
+      default: 'BDT',
       immutable: true,
     },
     status: {
       type: String,
-      enum: [
-        "PENDING",
-        "PROCESSING",
-        "COMPLETED",
-        "FAILED",
-        "REVERSED",
-      ],
-      default: "PENDING",
+      enum: ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REVERSED'],
+      default: 'PENDING',
       index: true,
     },
     channel: {
       type: String,
-      enum: [
-        "WEB",
-        "MOBILE",
-        "ATM",
-        "COUNTER",
-        "SYSTEM",
-      ],
-      default: "SYSTEM",
+      enum: ['WEB', 'MOBILE', 'ATM', 'COUNTER', 'SYSTEM'],
+      default: 'SYSTEM',
     },
     remarks: {
       type: String,
@@ -86,23 +67,25 @@ const transactionSchema = new Schema({
 
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: null,
     },
 
     idempotencyKey: {
-        type: String,
-        required: [ true, "Idempotency Key is required for creating a transaction" ],
-        index: true,
-        unique: true
+      type: String,
+      required: [true, 'Idempotency Key is required for creating a transaction'],
+      index: true,
+      unique: true,
     },
     metadata: {
       type: Schema.Types.Mixed,
       default: {},
     },
-}, {
+  },
+  {
     timestamps: true,
-})
+  }
+);
 
 /* ----------------------------------------------------
                         INDEXES
@@ -125,9 +108,8 @@ transactionSchema.index({
                         PRE SAVE
 ----------------------------------------------------- */
 
-transactionSchema.pre("validate", function (next) {
+transactionSchema.pre('validate', function () {
   this.currency = this.currency.toUpperCase();
-  next();
 });
 
 /* ----------------------------------------------------
@@ -135,22 +117,22 @@ transactionSchema.pre("validate", function (next) {
 ----------------------------------------------------- */
 
 transactionSchema.methods.markProcessing = function () {
-  this.status = "PROCESSING";
+  this.status = 'PROCESSING';
   return this.save();
 };
 
 transactionSchema.methods.markCompleted = function () {
-  this.status = "COMPLETED";
+  this.status = 'COMPLETED';
   return this.save();
 };
 
 transactionSchema.methods.markFailed = function () {
-  this.status = "FAILED";
+  this.status = 'FAILED';
   return this.save();
 };
 
 transactionSchema.methods.markReversed = function () {
-  this.status = "REVERSED";
+  this.status = 'REVERSED';
   return this.save();
 };
 
@@ -158,21 +140,19 @@ transactionSchema.methods.markReversed = function () {
                     STATIC METHODS
 ----------------------------------------------------- */
 
-transactionSchema.statics.findByReference = function (
-  referenceNo
-) {
+transactionSchema.statics.findByReference = function (referenceNo) {
   return this.findOne({ referenceNo });
 };
 
 transactionSchema.statics.findPending = function () {
   return this.find({
-    status: "PENDING",
+    status: 'PENDING',
   });
 };
 
 transactionSchema.statics.findCompleted = function () {
   return this.find({
-    status: "COMPLETED",
+    status: 'COMPLETED',
   });
 };
 
@@ -188,13 +168,13 @@ transactionSchema.statics.findByType = function (type) {
 
 transactionSchema.query.completed = function () {
   return this.where({
-    status: "COMPLETED",
+    status: 'COMPLETED',
   });
 };
 
 transactionSchema.query.pending = function () {
   return this.where({
-    status: "PENDING",
+    status: 'PENDING',
   });
 };
 
@@ -204,7 +184,6 @@ transactionSchema.query.byType = function (type) {
   });
 };
 
-const transactionModel = mongoose.model("transaction", transactionSchema)
+const transactionModel = mongoose.model('Transaction', transactionSchema);
 
-
-export default transactionModel   
+export default transactionModel;

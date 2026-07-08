@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
@@ -22,7 +22,7 @@ const depositProductSchema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: ["FDR", "DPS"],
+      enum: ['FDR', 'DPS'],
       index: true,
     },
 
@@ -82,15 +82,13 @@ const depositProductSchema = new Schema(
       type: Boolean,
       default: true,
       index: true,
-    }
+    },
   },
   {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
   }
 );
-
-
 
 /* ----------------------------------
             INDEXES
@@ -98,156 +96,99 @@ const depositProductSchema = new Schema(
 
 depositProductSchema.index({
   category: 1,
-  tenureMonths: 1
+  tenureMonths: 1,
 });
 
 depositProductSchema.index({
-  code: 1
+  code: 1,
 });
 
 depositProductSchema.index({
-  isActive: 1
+  isActive: 1,
 });
-
-
 
 /* ----------------------------------
             VIRTUALS
 ----------------------------------- */
 
-depositProductSchema.virtual("isFDR").get(function () {
-  return this.category === "FDR";
+depositProductSchema.virtual('isFDR').get(function () {
+  return this.category === 'FDR';
 });
 
-depositProductSchema.virtual("isDPS").get(function () {
-  return this.category === "DPS";
+depositProductSchema.virtual('isDPS').get(function () {
+  return this.category === 'DPS';
 });
-
-
 
 /* ----------------------------------
             PRE SAVE
 ----------------------------------- */
 
-depositProductSchema.pre("save", function(next) {
-
+depositProductSchema.pre('save', function () {
   this.code = this.code.toUpperCase();
-
-  next();
-
 });
-
-
 
 /* ----------------------------------
         INSTANCE METHODS
 ----------------------------------- */
 
-depositProductSchema.methods.calculateInterest = function(principal) {
-
-  return (principal * this.interestRate * this.tenureMonths)
-      / (100 * 12);
-
+depositProductSchema.methods.calculateInterest = function (principal) {
+  return (principal * this.interestRate * this.tenureMonths) / (100 * 12);
 };
 
-
-
-depositProductSchema.methods.calculateMaturityAmount = function(principal){
-
+depositProductSchema.methods.calculateMaturityAmount = function (principal) {
   return principal + this.calculateInterest(principal);
-
 };
 
-
-
-depositProductSchema.methods.isEligibleAmount = function(amount){
-
-  return (
-      amount >= this.minimumAmount &&
-      amount <= this.maximumAmount
-  );
-
+depositProductSchema.methods.isEligibleAmount = function (amount) {
+  return amount >= this.minimumAmount && amount <= this.maximumAmount;
 };
-
-
 
 /* ----------------------------------
         STATIC METHODS
 ----------------------------------- */
 
-depositProductSchema.statics.activeProducts =
-function(){
-
-    return this.find({
-        isActive:true
-    });
-
+depositProductSchema.statics.activeProducts = function () {
+  return this.find({
+    isActive: true,
+  });
 };
 
+depositProductSchema.statics.findFDR = function () {
+  return this.find({
+    category: 'FDR',
 
-
-depositProductSchema.statics.findFDR =
-function(){
-
-    return this.find({
-
-        category:"FDR",
-
-        isActive:true
-
-    });
-
+    isActive: true,
+  });
 };
 
+depositProductSchema.statics.findDPS = function () {
+  return this.find({
+    category: 'DPS',
 
-
-depositProductSchema.statics.findDPS =
-function(){
-
-    return this.find({
-
-        category:"DPS",
-
-        isActive:true
-
-    });
-
+    isActive: true,
+  });
 };
-
-
 
 /* ----------------------------------
         QUERY HELPERS
 ----------------------------------- */
 
-depositProductSchema.query.active =
-function(){
-
-    return this.where({
-        isActive:true
-    });
-
+depositProductSchema.query.active = function () {
+  return this.where({
+    isActive: true,
+  });
 };
 
-depositProductSchema.query.fdr =
-function(){
-
-    return this.where({
-        category:"FDR"
-    });
-
+depositProductSchema.query.fdr = function () {
+  return this.where({
+    category: 'FDR',
+  });
 };
 
-depositProductSchema.query.dps =
-function(){
-
-    return this.where({
-        category:"DPS"
-    });
-
+depositProductSchema.query.dps = function () {
+  return this.where({
+    category: 'DPS',
+  });
 };
 
-module.exports = mongoose.model(
-    "DepositProduct",
-    depositProductSchema
-);
+module.exports = mongoose.model('DepositProduct', depositProductSchema);

@@ -9,7 +9,7 @@ export const requireCompleteProfile = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Not authenticated. Please login first.'
+        message: 'Not authenticated. Please login first.',
       });
     }
 
@@ -17,7 +17,7 @@ export const requireCompleteProfile = async (req, res, next) => {
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Your account has been deactivated. Please contact support.'
+        message: 'Your account has been deactivated. Please contact support.',
       });
     }
 
@@ -25,17 +25,17 @@ export const requireCompleteProfile = async (req, res, next) => {
     if (user.isAccountLocked) {
       return res.status(403).json({
         success: false,
-        message: 'Your account is locked. Please try again later.'
+        message: 'Your account is locked. Please try again later.',
       });
     }
 
     // Check profile completion
     const profileCompletion = user.profileCompletion || 0;
-    
+
     if (profileCompletion < 100) {
       // Get missing fields for better user experience
       const missingFields = getMissingFields(user);
-      
+
       return res.status(403).json({
         success: false,
         message: 'Please complete your profile before accessing this resource',
@@ -44,22 +44,20 @@ export const requireCompleteProfile = async (req, res, next) => {
           profileCompletion: profileCompletion,
           requiredCompletion: 100,
           missingFields: missingFields,
-          action: 'Complete your profile at: PATCH /api/users/profile'
-        }
+          action: 'Complete your profile at: PATCH /api/users/profile',
+        },
       });
     }
 
     next();
-
   } catch (error) {
     next(error);
   }
 };
 
-
 const getMissingFields = (user) => {
   const missingFields = [];
-  
+
   // Required fields for complete profile
   const fields = [
     { name: 'firstName', value: user.firstName },
@@ -72,13 +70,13 @@ const getMissingFields = (user) => {
     { name: 'profilePicture', value: user.profilePicture },
     { name: 'occupation', value: user.occupation },
   ];
-  
-  fields.forEach(field => {
+
+  fields.forEach((field) => {
     // Check if field is empty, null, or undefined
     if (!field.value || field.value === '') {
       missingFields.push(field.name);
     }
   });
-  
+
   return missingFields;
 };

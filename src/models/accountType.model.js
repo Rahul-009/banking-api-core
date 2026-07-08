@@ -1,22 +1,17 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
 const accountTypeSchema = new Schema(
   {
     code: {
-      type: String, 
+      type: String,
       required: true,
       unique: true,
       uppercase: true,
       trim: true,
       immutable: true,
-      enum: [
-        "SAVINGS",
-        "CURRENT",
-        "STUDENT",
-        "WOMEN",
-      ],
+      enum: ['SAVINGS', 'CURRENT', 'STUDENT', 'WOMEN'],
     },
 
     name: {
@@ -83,12 +78,8 @@ const accountTypeSchema = new Schema(
 
     allowedGender: {
       type: String,
-      enum: [
-        "MALE",
-        "FEMALE",
-        "ANY",
-      ],
-      default: "ANY",
+      enum: ['MALE', 'FEMALE', 'ANY'],
+      default: 'ANY',
     },
 
     requiresStudentVerification: {
@@ -135,36 +126,33 @@ const accountTypeSchema = new Schema(
   }
 );
 
-
 /* ---------------------------------------
                 VIRTUALS
 ---------------------------------------- */
 
-accountTypeSchema.virtual("isStudent").get(function () {
-  return this.code === "STUDENT";
+accountTypeSchema.virtual('isStudent').get(function () {
+  return this.code === 'STUDENT';
 });
 
-accountTypeSchema.virtual("isWomen").get(function () {
-  return this.code === "WOMEN";
+accountTypeSchema.virtual('isWomen').get(function () {
+  return this.code === 'WOMEN';
 });
 
-accountTypeSchema.virtual("isSavings").get(function () {
-  return this.code === "SAVINGS";
+accountTypeSchema.virtual('isSavings').get(function () {
+  return this.code === 'SAVINGS';
 });
 
-accountTypeSchema.virtual("isCurrent").get(function () {
-  return this.code === "CURRENT";
+accountTypeSchema.virtual('isCurrent').get(function () {
+  return this.code === 'CURRENT';
 });
-
 
 /* ---------------------------------------
                 PRE SAVE
 ---------------------------------------- */
 
-accountTypeSchema.pre("save", function () {
-  return this.code = this.code.toUpperCase();
+accountTypeSchema.pre('save', function () {
+  return (this.code = this.code.toUpperCase());
 });
-
 
 /* ---------------------------------------
             INSTANCE METHODS
@@ -175,11 +163,9 @@ accountTypeSchema.methods.calculateInterest = function (balance) {
 };
 
 accountTypeSchema.methods.isEligible = function (user) {
-  const age =
-    Math.floor(
-      (Date.now() - user.dateOfBirth.getTime()) /
-      (365.25 * 24 * 60 * 60 * 1000)
-    );
+  const age = Math.floor(
+    (Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+  );
 
   if (this.minimumAge && age < this.minimumAge) {
     return false;
@@ -189,55 +175,41 @@ accountTypeSchema.methods.isEligible = function (user) {
     return false;
   }
 
-  if (this.allowedGender !== "ANY" && user.gender !== this.allowedGender) {
+  if (this.allowedGender !== 'ANY' && user.gender !== this.allowedGender) {
     return false;
   }
 
-  if (this.requiresStudentVerification && user.occupation !== "Student") {
+  if (this.requiresStudentVerification && user.occupation !== 'Student') {
     return false;
   }
 
   return true;
 };
 
-
-
-
-
 /* ---------------------------------------
             STATIC METHODS
 ---------------------------------------- */
 
-accountTypeSchema.statics.activeProducts =
-  function () {
-    return this.find({
-      isActive: true,
-    });
-  };
+accountTypeSchema.statics.activeProducts = function () {
+  return this.find({
+    isActive: true,
+  });
+};
 
-accountTypeSchema.statics.findByCode =
-  function (code) {
-    return this.findOne({
-      code: code.toUpperCase(),
-    });
-  };
-
-
-
-
+accountTypeSchema.statics.findByCode = function (code) {
+  return this.findOne({
+    code: code.toUpperCase(),
+  });
+};
 
 /* ---------------------------------------
             QUERY HELPERS
 ---------------------------------------- */
 
-accountTypeSchema.query.active =
-  function () {
-    return this.where({
-      isActive: true,
-    });
-  };
+accountTypeSchema.query.active = function () {
+  return this.where({
+    isActive: true,
+  });
+};
 
-export default mongoose.model(
-  "AccountType",
-  accountTypeSchema
-);
+export default mongoose.model('AccountType', accountTypeSchema);

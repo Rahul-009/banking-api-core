@@ -15,25 +15,44 @@ The Banking API Core is a backend application designed to manage banking operati
 - POST /forgot-password: Sends reset password email.
 - POST /reset-password: Resets user password.
 
-### Profile Endpoints:
-- GET /get-profile: Fetch all user info
-- PUT /update-profile: Set user info
+### Profile Endpoints (`/api/profile`):
+- GET /: Fetch the authenticated user's profile.
+- PUT /: Update the authenticated user's profile (only a fixed allowlist of fields — password/role/etc. are never accepted here).
+- PATCH /password: Change the authenticated user's password (requires current password).
 
-### Account Endpoints:
-- POST /: Create a new account (requires authentication).
-- GET /: Retrieve all accounts for the authenticated user.
-- GET /balance/:accountId: Get the balance of a specific account (requires authentication).
+### Account Endpoints (`/api/account`):
+- POST /: Create a new account for the authenticated user (requires a complete profile).
+- GET /: List the authenticated user's accounts (admins/managers may filter by `user`).
+- GET /:id: Get a specific account (owner or admin/manager only).
+- GET /number/:accountNumber: Get an account by its account number (owner or admin/manager only).
+- GET /:id/balance: Get an account's balance (owner or admin/manager only).
+- PATCH /:id: Update an account (owner may update `isPrimary`/`remarks`; `balance`/`status`/`accountType` require admin/manager).
+- PATCH /:id/freeze: Freeze an account (owner or admin/manager).
+- PATCH /:id/close: Close an account (admin/manager only).
+- PATCH /:id/activate: Reactivate an account (admin/manager only).
 
-### Transaction Endpoints:
-POST /: Create a new transaction (requires authentication).
-POST /system/initial-funds: Create an initial funds transaction (requires system user authentication).
+### Account Type Endpoints (`/api/account-type`):
+- GET /: List account types.
+- GET /active: List active account types.
+- GET /code/:code: Get an account type by code.
+- GET /:id: Get an account type by ID.
+- GET /:id/usage: Usage statistics for an account type (admin/manager only).
+- POST /:id/calculate-interest: Calculate interest for a given balance.
+- GET /eligible/:userId: Check which account types a user is eligible for (admin/manager only).
+- POST /: Create an account type (admin only).
+- PATCH /:id: Update an account type (admin only).
+- DELETE /:id: Delete an account type (admin only).
+
+### Transaction Endpoints (`/api/transaction`):
+- POST /: Create a peer-to-peer account transfer (requires authentication; double-entry, idempotent via `idempotencyKey`).
+- POST /system/initial-funds: Seed an account with initial funds (requires system-user authentication).
 
 # Getting Started
 
 ## Prerequisites
 ### Ensure you have the following installed on your system:
 
-- Node.js (v16 or higher)
+- Node.js (v22 or higher — see `.nvmrc`)
 - npm (Node Package Manager)
 - MongoDB ( remotely or with replicaset locally)
 
