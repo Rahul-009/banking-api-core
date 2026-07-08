@@ -22,7 +22,12 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: npm ci
+      # npm ci fails here on a known npm quirk: @unrs/resolver-binding-wasm32-wasi
+      # (a cpu:["wasm32"]-gated optional dep pulled in by ESLint's resolver) is
+      # correctly skipped on this runner's platform, but npm ci's strict lockfile
+      # validation still expects its own sub-dependencies (@emnapi/*) to be listed
+      # even though they're never installed. npm install doesn't hit this.
+      - run: npm install
 
       - run: npm run lint
 
