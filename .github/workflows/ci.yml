@@ -13,6 +13,10 @@ jobs:
     env:
       JWT_SECRET: ci-test-secret-not-for-production
       NODE_ENV: test
+      # email.service.js constructs the Resend client at module-load time,
+      # so importing the app (which every test does) throws without this —
+      # tests never actually send email, so a placeholder is fine.
+      RESEND_API_KEY: re_test_placeholder_not_a_real_key
 
     steps:
       - uses: actions/checkout@v4
